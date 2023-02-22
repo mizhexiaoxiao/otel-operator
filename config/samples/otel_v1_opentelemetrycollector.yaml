@@ -1,0 +1,61 @@
+apiVersion: otel.mzx.org/v1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-collector
+  namespace: trace
+spec:
+  podAnnotations: 
+    sidecar.istio.io/inject: "false"
+  image: otel/opentelemetry-collector-contrib:0.70.0
+  imagePullPolicy: IfNotPresent
+  replicas: 3
+  ports:
+    - containerPort: 55679 # Default endpoint for ZPages.
+    - containerPort: 4317 # Default endpoint for OpenTelemetry receiver.
+    - containerPort: 8888  # Default endpoint for querying metrics.
+  resources:
+    limits:
+      cpu: 3
+      memory: 3Gi
+    requests:
+      cpu: 200m
+      memory: 400Mi
+  config: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+    processors:
+      tail_sampling:
+        decision_wait: 30s
+        num_traces: 30000
+        policies:
+          [
+            {
+              name: sample_error_http,
+              type: numeric_attribute,
+              numeric_attribute: {key: http.status_code, min_value: 400}
+            },
+            {
+              name: string_policy,
+              type: string_attribute,
+              string_attribute: {key: error, values: [yes]}
+            },
+            {
+              name: probabilistic-policy,
+              type: probabilistic,
+              probabilistic: {sampling_percentage: 5}
+            }
+          ]
+      batch:
+    exporters:
+        logging:
+          verbosity: detailed
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [tail_sampling, batch]
+          exporters: [logging]
+

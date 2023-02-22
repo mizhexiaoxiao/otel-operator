@@ -1,0 +1,71 @@
+apiVersion: otel.mzx.org/v1
+kind: OpenTelemetryAgent
+metadata:
+  name: otel-agent
+  namespace: trace
+spec:
+  podAnnotations: 
+    sidecar.istio.io/inject: "false"
+  image: otel/opentelemetry-collector-contrib:0.70.0
+  imagePullPolicy: IfNotPresent
+  ports:
+    - containerPort: 55679 # Default endpoint for ZPages.
+    - containerPort: 6831 # Default endpoint for Jaeger receiver.
+      protocol: UDP
+    - containerPort: 6832 # Default endpoint for Jaeger receiver.
+      protocol: UDP
+    - containerPort: 8888  # Default endpoint for querying metrics.
+    - containerPort: 9411 # Default endpoint for Zipkin receiver.
+  resources:
+    limits:
+      cpu: 3
+      memory: 3Gi
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  hostNetwork: true 
+  config: |
+    receivers:
+      jaeger:
+        protocols:
+          thrift_compact:
+            endpoint: 0.0.0.0:6831
+            queue_size: 5_000
+            max_packet_size: 131_072
+            workers: 50
+            socket_buffer_size: 8_388_608
+          thrift_binary:
+            endpoint: 0.0.0.0:6832
+            queue_size: 5_000
+            max_packet_size: 131_072
+            workers: 50
+            socket_buffer_size: 8_388_608
+      zipkin:
+    exporters:
+      loadbalancing:
+        protocol:
+          otlp:
+            timeout: 1s
+            tls:
+              insecure: true
+        resolver:
+          static:
+            hostnames:
+            - otel-collector-0.otel-collector.trace.svc.cluster.local:4317 
+            - otel-collector-1.otel-collector.trace.svc.cluster.local:4317 
+            - otel-collector-2.otel-collector.trace.svc.cluster.local:4317
+
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 80
+        spike_limit_percentage: 60
+    extensions:
+      zpages: 
+    service:
+      extensions: [zpages]
+      pipelines:
+        traces:
+          receivers: [jaeger, zipkin]
+          processors: [memory_limiter]
+          exporters: [loadbalancing]

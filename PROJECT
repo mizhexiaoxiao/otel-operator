@@ -1,0 +1,33 @@
+domain: mzx.org
+layout:
+- go.kubebuilder.io/v3
+projectName: otel-operator
+repo: github.com/mizhexiaoxiao/otel-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: mzx.org
+  group: otel
+  kind: OpenTelemetryCollector
+  path: github.com/mizhexiaoxiao/otel-operator/api/v1
+  version: v1
+  webhooks:
+    defaulting: true
+    validation: true
+    webhookVersion: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: mzx.org
+  group: otel
+  kind: OpenTelemetryAgent
+  path: github.com/mizhexiaoxiao/otel-operator/api/v1
+  version: v1
+  webhooks:
+    defaulting: true
+    validation: true
+    webhookVersion: v1
+version: "3"

@@ -1,0 +1,94 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-otel-mzx-org-v1-opentelemetryagent
+  failurePolicy: Fail
+  name: mopentelemetryagent.kb.io
+  rules:
+  - apiGroups:
+    - otel.mzx.org
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - opentelemetryagents
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-otel-mzx-org-v1-opentelemetrycollector
+  failurePolicy: Fail
+  name: mopentelemetrycollector.kb.io
+  rules:
+  - apiGroups:
+    - otel.mzx.org
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - opentelemetrycollectors
+  sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-otel-mzx-org-v1-opentelemetryagent
+  failurePolicy: Fail
+  name: vopentelemetryagent.kb.io
+  rules:
+  - apiGroups:
+    - otel.mzx.org
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - opentelemetryagents
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-otel-mzx-org-v1-opentelemetrycollector
+  failurePolicy: Fail
+  name: vopentelemetrycollector.kb.io
+  rules:
+  - apiGroups:
+    - otel.mzx.org
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - opentelemetrycollectors
+  sideEffects: None

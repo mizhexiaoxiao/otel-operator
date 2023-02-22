@@ -1,0 +1,24 @@
+# permissions for end users to edit opentelemetryagents.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: opentelemetryagent-editor-role
+rules:
+- apiGroups:
+  - otel.mzx.org
+  resources:
+  - opentelemetryagents
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - otel.mzx.org
+  resources:
+  - opentelemetryagents/status
+  verbs:
+  - get

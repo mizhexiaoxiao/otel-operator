@@ -1,0 +1,145 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.9.2
+  creationTimestamp: null
+  name: opentelemetrycollectors.otel.mzx.org
+spec:
+  group: otel.mzx.org
+  names:
+    kind: OpenTelemetryCollector
+    listKind: OpenTelemetryCollectorList
+    plural: opentelemetrycollectors
+    singular: opentelemetrycollector
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: OpenTelemetryCollector is the Schema for the opentelemetrycollectors
+          API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: OpenTelemetryCollectorSpec defines the desired state of OpenTelemetryCollector
+            properties:
+              config:
+                type: string
+              dnsPolicy:
+                description: DNSPolicy defines how a pod's DNS will be configured.
+                type: string
+              hostNetwork:
+                type: boolean
+              image:
+                type: string
+              imagePullPolicy:
+                description: PullPolicy describes a policy for if/when to pull a container
+                  image
+                type: string
+              imagePullSecrets:
+                items:
+                  description: LocalObjectReference contains enough information to
+                    let you locate the referenced object inside the same namespace.
+                  properties:
+                    name:
+                      description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                        TODO: Add other useful fields. apiVersion, kind, uid?'
+                      type: string
+                  type: object
+                  x-kubernetes-map-type: atomic
+                type: array
+              podAnnotations:
+                additionalProperties:
+                  type: string
+                type: object
+              ports:
+                items:
+                  description: ContainerPort represents a network port in a single
+                    container.
+                  properties:
+                    containerPort:
+                      description: Number of port to expose on the pod's IP address.
+                        This must be a valid port number, 0 < x < 65536.
+                      format: int32
+                      type: integer
+                    hostIP:
+                      description: What host IP to bind the external port to.
+                      type: string
+                    hostPort:
+                      description: Number of port to expose on the host. If specified,
+                        this must be a valid port number, 0 < x < 65536. If HostNetwork
+                        is specified, this must match ContainerPort. Most containers
+                        do not need this.
+                      format: int32
+                      type: integer
+                    name:
+                      description: If specified, this must be an IANA_SVC_NAME and
+                        unique within the pod. Each named port in a pod must have
+                        a unique name. Name for the port that can be referred to by
+                        services.
+                      type: string
+                    protocol:
+                      default: TCP
+                      description: Protocol for port. Must be UDP, TCP, or SCTP. Defaults
+                        to "TCP".
+                      type: string
+                  required:
+                  - containerPort
+                  type: object
+                type: array
+              replicas:
+                format: int32
+                type: integer
+              resources:
+                description: ResourceRequirements describes the compute resource requirements.
+                properties:
+                  limits:
+                    additionalProperties:
+                      anyOf:
+                      - type: integer
+                      - type: string
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
+                    description: 'Limits describes the maximum amount of compute resources
+                      allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                    type: object
+                  requests:
+                    additionalProperties:
+                      anyOf:
+                      - type: integer
+                      - type: string
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
+                    description: 'Requests describes the minimum amount of compute
+                      resources required. If Requests is omitted for a container,
+                      it defaults to Limits if that is explicitly specified, otherwise
+                      to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                    type: object
+                type: object
+            required:
+            - config
+            - image
+            - replicas
+            type: object
+          status:
+            description: OpenTelemetryCollectorStatus defines the observed state of
+              OpenTelemetryCollector
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
