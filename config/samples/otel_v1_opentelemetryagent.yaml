@@ -6,8 +6,10 @@ metadata:
 spec:
   podAnnotations: 
     sidecar.istio.io/inject: "false"
-  image: otel/opentelemetry-collector-contrib:0.70.0
+  image: otel/opentelemetry-collector-contrib:0.73.0
   imagePullPolicy: IfNotPresent
+  imagePullSecrets:
+  - name: qcloudregistrykey
   ports:
     - containerPort: 55679 # Default endpoint for ZPages.
     - containerPort: 6831 # Default endpoint for Jaeger receiver.
@@ -15,6 +17,7 @@ spec:
     - containerPort: 6832 # Default endpoint for Jaeger receiver.
       protocol: UDP
     - containerPort: 8888  # Default endpoint for querying metrics.
+      name: port-8888
     - containerPort: 9411 # Default endpoint for Zipkin receiver.
   resources:
     limits:
@@ -49,17 +52,14 @@ spec:
             tls:
               insecure: true
         resolver:
-          static:
-            hostnames:
-            - otel-collector-0.otel-collector.trace.svc.cluster.local:4317 
-            - otel-collector-1.otel-collector.trace.svc.cluster.local:4317 
-            - otel-collector-2.otel-collector.trace.svc.cluster.local:4317
+          dns:
+            hostname: otel-collector.trace.svc.cluster.local
 
     processors:
       memory_limiter:
         check_interval: 1s
-        limit_percentage: 80
-        spike_limit_percentage: 60
+        limit_percentage: 90
+        spike_limit_percentage: 80
     extensions:
       zpages: 
     service:
