@@ -6,6 +6,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func Daemonset(instance otelv1.OpenTelemetryAgent) appsv1.DaemonSet {
@@ -26,6 +27,15 @@ func Daemonset(instance otelv1.OpenTelemetryAgent) appsv1.DaemonSet {
 		Spec: appsv1.DaemonSetSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: labels,
+			},
+			UpdateStrategy: appsv1.DaemonSetUpdateStrategy{
+				Type: "RollingUpdate",
+				RollingUpdate: &appsv1.RollingUpdateDaemonSet{
+					MaxUnavailable: &intstr.IntOrString{
+						Type:   intstr.String,
+						StrVal: "100%",
+					},
+				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{

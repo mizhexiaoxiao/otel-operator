@@ -2,10 +2,12 @@ package reconcile
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 
 	"github.com/mizhexiaoxiao/otel-operator/pkg/common"
+	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,8 +17,10 @@ import (
 )
 
 func CollectorConfigMap(ctx context.Context, params Params) error {
-	desired := desiredCollectorConfigMap(params)
-
+	desired, err := desiredCollectorConfigMap(params)
+	if err != nil {
+		return err
+	}
 	if err := expectedConfigMap(ctx, desired, params); err != nil {
 		return fmt.Errorf("failed to reconcile the expected configmap sets: %w", err)
 	}
@@ -25,8 +29,10 @@ func CollectorConfigMap(ctx context.Context, params Params) error {
 }
 
 func AgentConfigMap(ctx context.Context, params Params) error {
-	desired := desiredAgentConfigMap(params)
-
+	desired, err := desiredAgentConfigMap(params)
+	if err != nil {
+		return err
+	}
 	if err := expectedConfigMap(ctx, desired, params); err != nil {
 		return fmt.Errorf("failed to reconcile the expected configmap sets: %w", err)
 	}
@@ -34,32 +40,40 @@ func AgentConfigMap(ctx context.Context, params Params) error {
 	return nil
 }
 
-func desiredCollectorConfigMap(params Params) corev1.ConfigMap {
+func desiredCollectorConfigMap(params Params) (corev1.ConfigMap, error) {
+	configStr, err := ConfigFromString(params.Instance.Spec.Config)
+	if err != nil {
+		return corev1.ConfigMap{}, err
+	}
 	name := common.CollectorConfigMapName()
-
-	return corev1.ConfigMap{
+	cm := corev1.ConfigMap{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
 			Namespace: params.Instance.Namespace,
 		},
 		Data: map[string]string{
-			"otel-collector-config": params.Instance.Spec.Config,
+			"otel-collector-config": configStr,
 		},
 	}
+	return cm, nil
 }
 
-func desiredAgentConfigMap(params Params) corev1.ConfigMap {
+func desiredAgentConfigMap(params Params) (corev1.ConfigMap, error) {
+	configStr, err := ConfigFromString(params.AgentInstace.Spec.Config)
+	if err != nil {
+		return corev1.ConfigMap{}, err
+	}
 	name := common.AgentConfigMapName()
-
-	return corev1.ConfigMap{
+	cm := corev1.ConfigMap{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
 			Namespace: params.AgentInstace.Namespace,
 		},
 		Data: map[string]string{
-			"otel-agent-config": params.AgentInstace.Spec.Config,
+			"otel-agent-config": configStr,
 		},
 	}
+	return cm, nil
 }
 
 func expectedConfigMap(ctx context.Context, desired corev1.ConfigMap, params Params) error {
@@ -117,4 +131,16 @@ func expectedConfigMap(ctx context.Context, desired corev1.ConfigMap, params Par
 
 	params.Log.V(1).Info("applied", "configmap.name", desired.Name, "configmap.namespace", desired.Namespace)
 	return nil
+}
+
+func ConfigFromString(configStr string) (string, error) {
+	config := make(map[interface{}]interface{})
+	if err := yaml.Unmarshal([]byte(configStr), &config); err != nil {
+		return "", errors.New("couldn't parse the opentelemetry-collector configuration")
+	}
+	out, err := yaml.Marshal(config)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
 }

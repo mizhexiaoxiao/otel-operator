@@ -11,6 +11,7 @@ Customized operator, for reference only
 	
 ```sh
 make docker-build docker-push IMG=<some-registry>/otel-operator:tag
+docker push <some-registry>/otel-operator:tag
 ```
 	
 2. Deploy the controller to the cluster with the image specified by `IMG`:
@@ -23,13 +24,6 @@ make deploy IMG=<some-registry>/otel-operator:tag
 
 ```sh
 kubectl apply -f config/samples/
-```
-
-### Uninstall CRDs
-To delete the CRDs from the cluster:
-
-```sh
-make uninstall
 ```
 
 ### Undeploy controller
